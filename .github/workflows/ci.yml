@@ -19,8 +19,8 @@ env:
   UPX_DEBUG_TEST_FLOAT_DIVISION_BY_ZERO: 1
   UPX_DEBUG_TEST_LIBC_QSORT: 1
   ZSTD_CLEVEL: 9
-  # 2024-08-17
-  ZIG_DIST_VERSION: 0.14.0-dev.1166+bb7050106
+  # 2024-12-06
+  ZIG_DIST_VERSION: 0.14.0-dev.2384+cbc05e0b1
 
 jobs:
   job-rebuild-and-verify-stubs:
@@ -216,12 +216,13 @@ jobs:
           # NOTE: macos does not have "env -C"; only with brew coreutils
           # NOTE: macos-11 does not have "readlink -f"; only on macos >= 12 or with brew coreutils
           # { os: macos-11, gcc: gcc-10, gxx: g++-10, testsuite: true } # macos-11 is EOL; scheduled for removal from GitHub actions
-          - { os: macos-12, gcc: gcc-12, gxx: g++-12, testsuite: true }
+          # { os: macos-12, gcc: gcc-12, gxx: g++-12, testsuite: true }
           - { os: macos-13, testsuite: true } # use default Xcode-15; NOTE: gcc-12 on macos-13 does not work with Xcode-15
           - { os: macos-13, gcc: gcc-12, gxx: g++-12, testsuite: true, xcode_version: 14.3.1 }
           # { os: macos-14, gcc: gcc-13, gxx: g++-13, testsuite: true }                        # gcc-13: INTERNAL ERROR in ld64
           # { os: macos-14, gcc: gcc-13, gxx: g++-13, testsuite: true, xcode_version: 14.3.1 } # gcc-13: MISSING HEADER FILES
           - { os: macos-14, gcc: gcc-12, gxx: g++-12, testsuite: true } # => use gcc-12 for now
+          - { os: macos-15, testsuite: true }
     name: ${{ format('{0} {1}{2}', matrix.os, matrix.xcode_version && 'xcode-' || '',  matrix.xcode_version) }}
     runs-on: ${{ matrix.os }}
     steps:
@@ -245,7 +246,7 @@ jobs:
           echo "UPX_DEBUG_FORCE_PACK_MACOS=1" >> $GITHUB_ENV
           case "${{ matrix.os }}" in
             # TODO FIXME: UPX on macos-13+ is broken => disable run-packed for now
-            macos-13 | macos-14) echo "UPX_CONFIG_DISABLE_RUN_PACKED_TEST=ON" >> $GITHUB_ENV ;;
+            macos-13 | macos-14 | macos-15) echo "UPX_CONFIG_DISABLE_RUN_PACKED_TEST=ON" >> $GITHUB_ENV ;;
           esac
       - uses: actions/checkout@v4
         with: { submodules: true }
@@ -495,17 +496,17 @@ jobs:
           - { zig_target: aarch64-windows-gnu }
           - { zig_target: arm-linux-musleabihf, zig_flags: -mcpu=cortex_a5, qemu: qemu-arm }
           - { zig_target: armeb-linux-musleabihf, zig_flags: -mcpu=cortex_a5, qemu: qemu-armeb }
-          - { zig_target: i386-linux-gnu.2.3.4, zig_flags: -march=i586 }
+          # { zig_target: i386-linux-gnu.2.3.4, zig_flags: -march=i586 }
           - { zig_target: i386-linux-musl, zig_flags: -march=i586, qemu: qemu-i386 }
           - { zig_target: i386-windows-gnu }
-          - { zig_target: mips-linux-musl, qemu: qemu-mips }
-          - { zig_target: mips-linux-muslsf, zig_flags: -msoft-float, qemu: qemu-mips }
-          - { zig_target: mipsel-linux-musl, qemu: qemu-mipsel }
-          - { zig_target: mipsel-linux-muslsf, zig_flags: -msoft-float, qemu: qemu-mipsel }
-          - { zig_target: powerpc-linux-musl, qemu: qemu-ppc }
+          - { zig_target: mips-linux-musleabihf, qemu: qemu-mips }
+          - { zig_target: mips-linux-musleabi, zig_flags: -msoft-float, qemu: qemu-mips }
+          - { zig_target: mipsel-linux-musleabihf, qemu: qemu-mipsel }
+          - { zig_target: mipsel-linux-musleabi, zig_flags: -msoft-float, qemu: qemu-mipsel }
+          - { zig_target: powerpc-linux-musleabi, qemu: qemu-ppc }
           - { zig_target: powerpc64-linux-musl, qemu: qemu-ppc64 }
           - { zig_target: powerpc64le-linux-musl, qemu: qemu-ppc64le }
-          - { zig_target: x86_64-linux-gnu.2.3.4, qemu: qemu-x86_64 } # can use QEMU because of gcompat
+          # { zig_target: x86_64-linux-gnu.2.3.4, qemu: qemu-x86_64 } # can use QEMU because of gcompat
           - { zig_target: x86_64-linux-musl, qemu: qemu-x86_64 }
           - { zig_target: x86_64-macos.11.0-none }
           - { zig_target: x86_64-windows-gnu }
